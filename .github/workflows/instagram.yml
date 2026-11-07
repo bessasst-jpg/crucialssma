@@ -1,0 +1,43 @@
+name: Publicar no Instagram
+
+on:
+  schedule:
+    - cron: "7,22,37,52 * * * *"   # a cada 15 minutos (o GitHub pode atrasar alguns minutos)
+  workflow_dispatch: {}            # botão "Run workflow" para rodar na hora
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Publicar posts com horário vencido
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: |
+          export MEDIA_BASE_URL="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}"
+          python instagram/publicar.py
+
+      - name: Guardar a fila atualizada
+        if: always()
+        run: |
+          if ! git diff --quiet instagram/fila.json; then
+            git config user.name "robo-instagram"
+            git config user.email "robo-instagram@users.noreply.github.com"
+            git add instagram/fila.json
+            git commit -m "Fila do Instagram atualizada"
+            git push
+          fi
