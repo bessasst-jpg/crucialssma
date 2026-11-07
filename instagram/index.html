@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Publicações · Crucial SSMA</title>
+<link rel="icon" href="../img/simbolo.png">
+<style>
+@font-face{font-family:Poppins;src:url(../fonts/Poppins-Regular.ttf) format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:Poppins;src:url(../fonts/Poppins-SemiBold.ttf) format("truetype");font-weight:600;font-display:swap}
+@font-face{font-family:Poppins;src:url(../fonts/Poppins-Bold.ttf) format("truetype");font-weight:700;font-display:swap}
+:root{--teal:#027F7C;--teal-deep:#06302E;--lime:#8CC10A;--orange:#FF7D1E;--ink:#12302E;--muted:#4F6664;--line:#DFE8E6;--soft:#F2F7F6;--ok-bg:#E7F6CF;--ok-fg:#3D6A00;--warn-bg:#FFECDC;--warn-fg:#9A4206;--bad-bg:#FFE2DF;--bad-fg:#C4271C}
+*{box-sizing:border-box}
+body{margin:0;font-family:Poppins,system-ui,sans-serif;color:var(--ink);background:var(--soft);line-height:1.5}
+a{color:var(--teal)}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
+header{background:var(--teal-deep);color:#fff;padding:22px 0 26px}
+header .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+header img{height:34px;width:auto}
+header h1{font-size:24px;margin:18px 0 4px}
+header p{margin:0;opacity:.75;font-size:14px}
+.refresh{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.next{margin-top:-14px;background:#fff;border-radius:20px;padding:20px;box-shadow:0 16px 40px rgba(2,127,124,.12);display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:center}
+.next img{width:96px;height:120px;object-fit:cover;border-radius:12px;background:var(--line)}
+.next small{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+.next h2{font-size:20px;margin:4px 0}
+.next .count{font-size:28px;font-weight:700;color:var(--teal-deep);line-height:1.1}
+.next p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.stat{background:#fff;border-radius:16px;padding:14px 16px;border:1px solid var(--line)}
+.stat b{display:block;font-size:28px;line-height:1.1}
+.stat span{font-size:13px;color:var(--muted)}
+.tabs{display:flex;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px;margin:8px 0 14px;width:max-content;max-width:100%;overflow-x:auto}
+.tabs button{border:0;background:none;font:inherit;font-size:14px;font-weight:600;color:var(--muted);padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.tabs button[aria-pressed="true"]{background:var(--teal);color:#fff}
+.list{display:grid;gap:10px;padding-bottom:40px}
+.post{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;grid-template-columns:72px 1fr;gap:14px}
+.post img{width:72px;height:90px;object-fit:cover;border-radius:10px;background:var(--line)}
+.post .meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.post .cap{margin:6px 0 0;font-size:13.5px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.post .err{margin:6px 0 0;font-size:13px;color:var(--bad-fg)}
+.pill{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px}
+.pill.agendado{background:var(--soft);color:var(--teal)}
+.pill.publicado{background:var(--ok-bg);color:var(--ok-fg)}
+.pill.erro{background:var(--bad-bg);color:var(--bad-fg)}
+.pill.atraso{background:var(--warn-bg);color:var(--warn-fg)}
+.qtd{font-size:12px;color:var(--muted);font-weight:500}
+.empty{text-align:center;color:var(--muted);padding:30px 0}
+footer{font-size:13px;color:var(--muted);padding:0 0 40px}
+@media (max-width:560px){.stats{gap:8px}.stat{padding:10px 12px}.stat b{font-size:22px}.next{grid-template-columns:72px 1fr}.next img{width:72px;height:90px}.next .count{font-size:22px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top"><a href="../"><img src="../img/logo-branco.png" alt="Crucial SSMA"></a><button class="refresh" id="refresh" type="button">↻ Atualizar</button></div>
+    <h1>Publicações no Instagram</h1>
+    <p id="updated">Carregando…</p>
+  </div>
+</header>
+<main class="wrap">
+  <section class="next" id="next" hidden></section>
+  <div class="stats">
+    <div class="stat"><b id="n-pub">–</b><span>publicados</span></div>
+    <div class="stat"><b id="n-fila">–</b><span>na fila</span></div>
+    <div class="stat"><b id="n-err">–</b><span>com erro</span></div>
+  </div>
+  <div class="tabs" role="group" aria-label="Filtro">
+    <button type="button" data-f="agendado" aria-pressed="true">Próximos</button>
+    <button type="button" data-f="publicado" aria-pressed="false">Publicados</button>
+    <button type="button" data-f="erro" aria-pressed="false">Erros</button>
+    <button type="button" data-f="todos" aria-pressed="false">Todos</button>
+  </div>
+  <div class="list" id="list"></div>
+  <footer>Atualiza sozinho a cada minuto. O robô confere a fila a cada 15 minutos; um post pode sair alguns minutos depois do horário. Detalhes técnicos: <a href="https://github.com/bessasst-jpg/crucialssma/actions" target="_blank" rel="noopener">execuções no GitHub</a>.</footer>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const fmt = q => { const [d, h] = q.split('T'); const dt = new Date(q + ':00-03:00');
+  return dt.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo' }).replace('.', '') + ' · ' + h; };
+const nowBR = () => new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 16);
+const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const tipo = { CAROUSEL: 'Carrossel', IMAGE: 'Foto', REELS: 'Reels', STORIES: 'Story' };
+let fila = [], filtro = 'agendado';
+
+function rotulo(p) {
+  if (p.status === 'agendado' && p.quando < nowBR()) return ['atraso', 'Saindo agora'];
+  return [p.status, { agendado: 'Agendado', publicado: 'Publicado', erro: 'Erro' }[p.status] || p.status];
+}
+function card(p) {
+  const [cls, txt] = rotulo(p);
+  const img = p.arquivos && p.arquivos[0] ? `midia/${p.arquivos[0]}` : '';
+  const link = p.link ? ` · <a href="${esc(p.link)}" target="_blank" rel="noopener">ver no Instagram</a>` : '';
+  return `<article class="post">${img ? `<img src="${img}" alt="" loading="lazy">` : '<span></span>'}<div>
+    <div class="meta"><span>${fmt(p.quando)}</span><span class="pill ${cls}">${txt}</span><span class="qtd">${tipo[p.tipo] || p.tipo} · ${p.arquivos.length} ${p.arquivos.length > 1 ? 'imagens' : 'imagem'}</span>${link}</div>
+    <p class="cap">${esc((p.legenda || '').replace(/\s+/g, ' '))}</p>
+    ${p.status === 'erro' && p.erro ? `<p class="err">${esc(p.erro)}</p>` : ''}</div></article>`;
+}
+function countdown(q) {
+  const ms = new Date(q + ':00-03:00') - Date.now();
+  if (ms <= 0) return 'saindo agora';
+  const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
+  return (d ? d + 'd ' : '') + (d || h ? h + 'h ' : '') + m + 'min';
+}
+function render() {
+  const fil = fila.filter(p => filtro === 'todos' || p.status === filtro)
+    .sort((a, b) => filtro === 'publicado' ? b.quando.localeCompare(a.quando) : a.quando.localeCompare(b.quando));
+  $('list').innerHTML = fil.length ? fil.map(card).join('') : '<p class="empty">Nada por aqui.</p>';
+  $('n-pub').textContent = fila.filter(p => p.status === 'publicado').length;
+  $('n-fila').textContent = fila.filter(p => p.status === 'agendado').length;
+  $('n-err').textContent = fila.filter(p => p.status === 'erro').length;
+  const prox = fila.filter(p => p.status === 'agendado').sort((a, b) => a.quando.localeCompare(b.quando))[0];
+  const nx = $('next');
+  if (prox) {
+    nx.hidden = false;
+    nx.innerHTML = `<img src="midia/${prox.arquivos[0]}" alt=""><div><small>Próximo post</small><div class="count">${countdown(prox.quando)}</div>
+      <h2>${fmt(prox.quando)}</h2><p>${esc((prox.legenda || '').split('\n')[0])}</p></div>`;
+  } else nx.hidden = true;
+}
+async function load() {
+  try {
+    const r = await fetch('fila.json?t=' + Date.now(), { cache: 'no-store' });
+    fila = await r.json();
+    $('updated').textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    render();
+  } catch (e) { $('updated').textContent = 'Não consegui carregar a fila. Tente atualizar.'; }
+}
+document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => {
+  filtro = b.dataset.f; document.querySelectorAll('[data-f]').forEach(x => x.setAttribute('aria-pressed', x === b)); render();
+}));
+$('refresh').addEventListener('click', load);
+load(); setInterval(load, 60000);
+</script>
+</body>
+</html>
