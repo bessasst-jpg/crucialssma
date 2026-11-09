@@ -4,133 +4,496 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Publicações · Crucial SSMA</title>
+<title>Painel Instagram</title>
 <link rel="icon" href="../img/simbolo.png">
 <style>
-@font-face{font-family:Poppins;src:url(../fonts/Poppins-Regular.ttf) format("truetype");font-weight:400;font-display:swap}
-@font-face{font-family:Poppins;src:url(../fonts/Poppins-SemiBold.ttf) format("truetype");font-weight:600;font-display:swap}
-@font-face{font-family:Poppins;src:url(../fonts/Poppins-Bold.ttf) format("truetype");font-weight:700;font-display:swap}
-:root{--teal:#027F7C;--teal-deep:#06302E;--lime:#8CC10A;--orange:#FF7D1E;--ink:#12302E;--muted:#4F6664;--line:#DFE8E6;--soft:#F2F7F6;--ok-bg:#E7F6CF;--ok-fg:#3D6A00;--warn-bg:#FFECDC;--warn-fg:#9A4206;--bad-bg:#FFE2DF;--bad-fg:#C4271C}
+:root{--bg:#f3f5f3;--card:#fff;--ink:#16201b;--muted:#5f6b65;--line:#e1e6e2;--accent:#0f766e;--accent-ink:#fff;
+--accent-soft:#e3f2ef;--good:#2f7d4f;--bad:#b3392f;--warn:#a2650c;--shadow:0 1px 2px rgba(0,0,0,.05)}
+@media (prefers-color-scheme:dark){:root{--bg:#121614;--card:#1b211e;--ink:#e8eeea;--muted:#a0aaa4;--line:#2c3430;
+--accent:#3cbfae;--accent-ink:#0b1714;--accent-soft:#183531;--good:#6cc08d;--bad:#ea7f75;--warn:#e0a650}}
 *{box-sizing:border-box}
-body{margin:0;font-family:Poppins,system-ui,sans-serif;color:var(--ink);background:var(--soft);line-height:1.5}
-a{color:var(--teal)}
-.wrap{max-width:960px;margin:0 auto;padding:0 16px}
-header{background:var(--teal-deep);color:#fff;padding:22px 0 26px}
-header .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-header img{height:34px;width:auto}
-header h1{font-size:24px;margin:18px 0 4px}
-header p{margin:0;opacity:.75;font-size:14px}
-.refresh{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
-.next{margin-top:-14px;background:#fff;border-radius:20px;padding:20px;box-shadow:0 16px 40px rgba(2,127,124,.12);display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:center}
-.next img{width:96px;height:120px;object-fit:cover;border-radius:12px;background:var(--line)}
-.next small{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
-.next h2{font-size:20px;margin:4px 0}
-.next .count{font-size:28px;font-weight:700;color:var(--teal-deep);line-height:1.1}
-.next p{margin:4px 0 0;color:var(--muted);font-size:14px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
-.stat{background:#fff;border-radius:16px;padding:14px 16px;border:1px solid var(--line)}
-.stat b{display:block;font-size:28px;line-height:1.1}
-.stat span{font-size:13px;color:var(--muted)}
-.tabs{display:flex;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px;margin:8px 0 14px;width:max-content;max-width:100%;overflow-x:auto}
-.tabs button{border:0;background:none;font:inherit;font-size:14px;font-weight:600;color:var(--muted);padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
-.tabs button[aria-pressed="true"]{background:var(--teal);color:#fff}
-.list{display:grid;gap:10px;padding-bottom:40px}
-.post{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;grid-template-columns:72px 1fr;gap:14px}
-.post img{width:72px;height:90px;object-fit:cover;border-radius:10px;background:var(--line)}
-.post .meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;font-weight:600}
-.post .cap{margin:6px 0 0;font-size:13.5px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.post .err{margin:6px 0 0;font-size:13px;color:var(--bad-fg)}
-.pill{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px}
-.pill.agendado{background:var(--soft);color:var(--teal)}
-.pill.publicado{background:var(--ok-bg);color:var(--ok-fg)}
-.pill.erro{background:var(--bad-bg);color:var(--bad-fg)}
-.pill.atraso{background:var(--warn-bg);color:var(--warn-fg)}
-.qtd{font-size:12px;color:var(--muted);font-weight:500}
-.empty{text-align:center;color:var(--muted);padding:30px 0}
-footer{font-size:13px;color:var(--muted);padding:0 0 40px}
-@media (max-width:560px){.stats{gap:8px}.stat{padding:10px 12px}.stat b{font-size:22px}.next{grid-template-columns:72px 1fr}.next img{width:72px;height:90px}.next .count{font-size:22px}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+button{font:inherit;color:inherit}
+a{color:var(--accent)}
+[hidden]{display:none!important}
+.app{display:flex;min-height:100vh}
+.side{width:232px;flex-shrink:0;background:var(--card);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 12px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:0 6px 18px}
+.brand img{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);object-fit:contain;background:#fff;padding:4px}
+.brand b{display:block;font-size:14px;line-height:1.2}.brand span{font-size:12px;color:var(--muted)}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:10px;border:0;background:none;padding:9px 10px;border-radius:9px;color:var(--muted);cursor:pointer;text-align:left}
+.nav button:hover{background:var(--bg);color:var(--ink)}
+.nav button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.nav svg{width:19px;height:19px;flex-shrink:0}
+.sys{margin-top:auto;border-top:1px solid var(--line);padding:14px 8px 0;font-size:13px;display:flex;flex-direction:column;gap:7px}
+.sys div{display:flex;align-items:center;gap:8px}
+.sys button{border:0;background:none;padding:0;color:var(--accent);cursor:pointer;font-size:13px;text-align:left}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.dot.ok{background:var(--good)}.dot.no{background:var(--bad)}.dot.warn{background:var(--warn)}
+main{flex:1;min-width:0;padding:22px 28px 60px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:18px}
+.top h1{font-size:22px;margin:0;flex:1;min-width:180px}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:var(--accent-ink);border:0;border-radius:9px;padding:9px 15px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:none;color:var(--bad);border:1px solid var(--line)}
+.btn.small{padding:5px 11px;font-size:13px}
+.btn:disabled{opacity:.55;cursor:default}
+.btn svg{width:16px;height:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.card h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.hint{font-size:13px;color:var(--muted)}
+.banner{padding:11px 14px;border-radius:10px;margin-bottom:16px;font-size:14px;background:var(--accent-soft)}
+.banner.err{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.row{display:grid;gap:16px;margin-bottom:16px}
+.r-next{grid-template-columns:minmax(0,1.5fr) minmax(260px,1fr)}
+@media (max-width:980px){.r-next{grid-template-columns:minmax(0,1fr)}}
+.row>*,.card{min-width:0}
+.kpis{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:16px}
+.kpi .label{color:var(--muted);font-size:13px}
+.kpi .val{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.3}
+.kpi .sub{font-size:12.5px;color:var(--muted)}
+.next{display:flex;gap:18px;align-items:stretch}
+.next img{width:132px;aspect-ratio:3/4;object-fit:cover;border-radius:10px;background:var(--bg);flex-shrink:0;cursor:pointer}
+.next .info{display:flex;flex-direction:column;gap:6px;min-width:0}
+@media (max-width:520px){.next img{width:96px}}
+.count{font-size:28px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.clamp{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.check{display:flex;flex-direction:column;gap:10px;font-size:14px}
+.check>div{display:flex;gap:10px;align-items:flex-start}
+.check .dot{margin-top:7px}
+.strip{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
+.strip button{border:0;background:none;padding:0;cursor:pointer;flex-shrink:0;width:96px;text-align:left}
+.strip img{width:96px;aspect-ratio:3/4;object-fit:cover;border-radius:8px;display:block;background:var(--bg)}
+.strip span{font-size:12px;color:var(--muted)}
+.status{font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--line);white-space:nowrap}
+.status.agendado{background:var(--accent-soft);color:var(--accent)}
+.status.publicado{background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good)}
+.status.erro{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
+.status.publicando,.status.atrasado{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:13px}
+.tw{overflow-x:auto}
+.thumb{width:44px;aspect-ratio:3/4;object-fit:cover;border-radius:5px;background:var(--bg);display:block}
+.err-msg{color:var(--bad);font-size:13px}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:3px}
+.seg button{border:0;background:none;padding:5px 13px;border-radius:7px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.cal-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.cal-head h2{margin:0;min-width:170px;text-align:center;text-transform:capitalize}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal .wd{font-size:12px;color:var(--muted);text-align:center;padding-bottom:2px}
+.day{background:var(--card);border:1px solid var(--line);border-radius:10px;min-height:118px;padding:6px;display:flex;flex-direction:column;gap:5px}
+.day.out{opacity:.45}.day.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.day b{font-size:12px;color:var(--muted);font-weight:600}
+.ev{display:flex;gap:6px;align-items:center;border:0;background:var(--bg);border-radius:7px;padding:3px;cursor:pointer;text-align:left;width:100%}
+.ev img{width:30px;aspect-ratio:3/4;object-fit:cover;border-radius:4px}
+.ev span{font-size:11.5px;line-height:1.25;overflow:hidden}
+.ev.erro{outline:2px solid var(--bad)}.ev.publicado{opacity:.6}.ev.publicando{outline:2px solid var(--warn)}
+@media (max-width:760px){.cal .wd{font-size:10px}.day{min-height:80px;padding:3px}.ev span{display:none}.ev{justify-content:center}}
+.car{position:relative;aspect-ratio:3/4;background:#e9eef0;overflow:hidden;touch-action:pan-y}
+.car-track{display:flex;height:100%;transition:transform .3s ease}
+.car-track img{width:100%;height:100%;object-fit:cover;flex-shrink:0;display:block;user-select:none;-webkit-user-drag:none}
+.car-btn{position:absolute;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:0;background:rgba(255,255,255,.85);color:#262626;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.car-btn.p{left:8px}.car-btn.n{right:8px}
+.car-n{position:absolute;right:10px;top:10px;padding:2px 9px;border-radius:12px;background:rgba(20,20,20,.7);color:#fff;font-size:12px;font-weight:600}
+.cap{white-space:pre-line;word-wrap:break-word;font-size:14px}
+.cap .tag{color:var(--accent)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal{background:var(--card);color:var(--ink);border-radius:16px;width:min(980px,100%);max-height:calc(100vh - 32px);overflow:auto;display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr)}
+.modal.small{width:min(560px,100%);display:block}
+@media (max-width:820px){.modal{grid-template-columns:1fr}}
+.modal .m-media{background:#000;display:flex;align-items:center}
+.modal .m-media .car{width:100%}
+.modal .m-body{padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.m-close{margin-left:auto;border:0;background:none;cursor:pointer;color:var(--muted);padding:4px}
+.m-close svg{width:22px;height:22px}
+label{display:block;font-size:13px;color:var(--muted);margin:2px 0 4px}
+input{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font:inherit}
+ol.steps{margin:0;padding-left:20px;font-size:14px;display:flex;flex-direction:column;gap:6px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:10px 18px;border-radius:10px;z-index:60;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:calc(100% - 32px)}
+@media (max-width:860px){
+  .app{flex-direction:column}
+  .side{width:auto;height:auto;position:sticky;top:0;z-index:10;flex-direction:row;align-items:center;padding:8px 10px;border-right:0;border-bottom:1px solid var(--line);gap:8px}
+  .brand{padding:0}.brand div{display:none}
+  .nav{flex-direction:row;overflow-x:auto;flex:1}
+  .nav button{padding:8px;white-space:nowrap}
+  .sys{display:none}
+  main{padding:16px}
+}
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <div class="top"><a href="../"><img src="../img/logo-branco.png" alt="Crucial SSMA"></a><button class="refresh" id="refresh" type="button">↻ Atualizar</button></div>
-    <h1>Publicações no Instagram</h1>
-    <p id="updated">Carregando…</p>
-  </div>
-</header>
-<main class="wrap">
-  <section class="next" id="next" hidden></section>
-  <div class="stats">
-    <div class="stat"><b id="n-pub">–</b><span>publicados</span></div>
-    <div class="stat"><b id="n-fila">–</b><span>na fila</span></div>
-    <div class="stat"><b id="n-err">–</b><span>com erro</span></div>
-  </div>
-  <div class="tabs" role="group" aria-label="Filtro">
-    <button type="button" data-f="agendado" aria-pressed="true">Próximos</button>
-    <button type="button" data-f="publicado" aria-pressed="false">Publicados</button>
-    <button type="button" data-f="erro" aria-pressed="false">Erros</button>
-    <button type="button" data-f="todos" aria-pressed="false">Todos</button>
-  </div>
-  <div class="list" id="list"></div>
-  <footer>Atualiza sozinho a cada minuto. O robô confere a fila a cada 15 minutos; um post pode sair alguns minutos depois do horário. Detalhes técnicos: <a href="https://github.com/bessasst-jpg/crucialssma/actions" target="_blank" rel="noopener">execuções no GitHub</a>.</footer>
-</main>
-<script>
-const $ = id => document.getElementById(id);
-const fmt = q => { const [d, h] = q.split('T'); const dt = new Date(q + ':00-03:00');
-  return dt.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo' }).replace('.', '') + ' · ' + h; };
-const nowBR = () => new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 16);
-const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const tipo = { CAROUSEL: 'Carrossel', IMAGE: 'Foto', REELS: 'Reels', STORIES: 'Story' };
-let fila = [], filtro = 'agendado';
+<div class="app">
+  <aside class="side">
+    <div class="brand"><img src="../img/simbolo.png" alt=""><div><b>@crucialssmaoficial</b><span>Instagram · nuvem</span></div></div>
+    <nav class="nav" id="nav" aria-label="Seções">
+      <button data-t="painel" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Painel</span></button>
+      <button data-t="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Agenda</span></button>
+    </nav>
+    <div class="sys" id="sys" aria-live="polite"></div>
+  </aside>
 
-function rotulo(p) {
-  if (p.status === 'agendado' && p.quando < nowBR()) return ['atraso', 'Saindo agora'];
-  return [p.status, { agendado: 'Agendado', publicado: 'Publicado', erro: 'Erro' }[p.status] || p.status];
+  <main>
+    <div class="top">
+      <h1 id="title">Painel</h1>
+      <button class="btn ghost" id="syncBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2M3 12A9 9 0 0 1 18.5 5.8M18 2v4h-4M6 22v-4h4"/></svg>Atualizar dados</button>
+    </div>
+    <div id="banners"></div>
+
+    <section id="painel">
+      <div class="row r-next">
+        <div class="card"><h2>Próximo post</h2><div id="nextPost"></div></div>
+        <div class="card"><h2>Situação do robô</h2><div class="check" id="checks"></div></div>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="card" style="margin-bottom:16px"><h2>Próximos posts <span class="hint" style="font-weight:400">· clique para ver ou publicar agora</span></h2><div class="strip" id="upcoming"></div></div>
+      <div class="card"><h2>Publicados recentemente</h2><div class="strip" id="recent"></div></div>
+    </section>
+
+    <section id="agenda" hidden>
+      <div class="top" style="margin-bottom:12px">
+        <div class="seg" role="group" aria-label="Visualização da agenda">
+          <button type="button" data-a="cal" class="on">Calendário</button>
+          <button type="button" data-a="lista">Lista</button>
+        </div>
+        <span class="hint">Horários de Brasília · o robô confere a fila a cada 15 minutos</span>
+      </div>
+      <div id="agCal">
+        <div class="cal-head">
+          <button class="btn ghost small" type="button" id="calPrev" aria-label="Mês anterior">‹</button>
+          <h2 id="calTitle"></h2>
+          <button class="btn ghost small" type="button" id="calNext" aria-label="Próximo mês">›</button>
+          <button class="btn ghost small" type="button" id="calToday">Hoje</button>
+        </div>
+        <div class="cal" id="cal"></div>
+      </div>
+      <div class="card" id="agList" hidden><div class="tw"><table id="postTable"></table></div></div>
+    </section>
+  </main>
+</div>
+<div id="modalRoot"></div>
+
+<script>
+const REPO = 'bessasst-jpg/crucialssma', WORKFLOW = 'instagram.yml', BRANCH = 'main';
+const GH = 'https://api.github.com/repos/' + REPO;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const TYPE = {IMAGE: 'Foto', CAROUSEL: 'Carrossel', REELS: 'Reels', STORIES: 'Story'};
+const TITLES = {painel: 'Painel', agenda: 'Agenda'};
+const X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+// "quando" vem no horário de Brasília (UTC-3, sem horário de verão)
+const brDate = q => new Date(q + ':00-03:00');
+const nowBR = () => new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 16);
+const dLong = q => brDate(q).toLocaleString('pt-BR', {weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo'});
+const dShort = q => brDate(q).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo'});
+const hm = d => new Date(d).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+let S = {fila: [], runs: [], month: null, agView: 'cal', loadErr: null};
+
+function toast(msg) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; t.setAttribute('role', 'status');
+  document.body.appendChild(t); setTimeout(() => t.remove(), 4200);
 }
-function card(p) {
-  const [cls, txt] = rotulo(p);
-  const img = p.arquivos && p.arquivos[0] ? `midia/${p.arquivos[0]}` : '';
-  const link = p.link ? ` · <a href="${esc(p.link)}" target="_blank" rel="noopener">ver no Instagram</a>` : '';
-  return `<article class="post">${img ? `<img src="${img}" alt="" loading="lazy">` : '<span></span>'}<div>
-    <div class="meta"><span>${fmt(p.quando)}</span><span class="pill ${cls}">${txt}</span><span class="qtd">${tipo[p.tipo] || p.tipo} · ${p.arquivos.length} ${p.arquivos.length > 1 ? 'imagens' : 'imagem'}</span>${link}</div>
-    <p class="cap">${esc((p.legenda || '').replace(/\s+/g, ' '))}</p>
-    ${p.status === 'erro' && p.erro ? `<p class="err">${esc(p.erro)}</p>` : ''}</div></article>`;
+
+/* ---------- navegação ---------- */
+function go(t) {
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  document.querySelectorAll('main section').forEach(s => s.hidden = s.id !== t);
+  $('#title').textContent = TITLES[t];
+  store.set('tab', t);
 }
+document.querySelectorAll('#nav button').forEach(b => b.onclick = () => go(b.dataset.t));
+
+/* ---------- dados ---------- */
+const pending = () => store.get('pendentes', {}); // id -> horário do pedido de "Publicar agora"
+function statusOf(p) {
+  const ped = pending()[p.id];
+  if (ped && (p.status === 'agendado' || p.status === 'erro') && Date.now() - ped < 15 * 60e3) return 'publicando';
+  if (p.status === 'agendado' && p.quando < nowBR()) return 'atrasado';
+  return p.status;
+}
+const LABEL = {agendado: 'agendado', publicado: 'publicado', erro: 'erro', publicando: 'publicando…', atrasado: 'saindo agora'};
+const cover = p => p.arquivos?.[0] ? 'midia/' + p.arquivos[0] : '';
+
+async function loadFila() {
+  const tok = store.get('ghToken', '');
+  // com token, lê direto do repositório (mais rápido que esperar o site atualizar)
+  if (tok) {
+    try {
+      const r = await fetch(`${GH}/contents/instagram/fila.json?ref=${BRANCH}&t=${Date.now()}`, {headers: {Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github.raw+json'}, cache: 'no-store'});
+      if (r.ok) return r.json();
+    } catch {}
+  }
+  const r = await fetch('fila.json?t=' + Date.now(), {cache: 'no-store'});
+  if (!r.ok) throw new Error('fila.json ' + r.status);
+  return r.json();
+}
+async function loadRuns() {
+  const tok = store.get('ghToken', '');
+  const r = await fetch(`${GH}/actions/workflows/${WORKFLOW}/runs?per_page=5`, {headers: tok ? {Authorization: 'Bearer ' + tok} : {}, cache: 'no-store'});
+  if (!r.ok) return [];
+  return (await r.json()).workflow_runs || [];
+}
+async function refresh(withRuns = true) {
+  try { S.fila = await loadFila(); S.loadErr = null; } catch (e) { S.loadErr = 'Não consegui carregar a fila. Tente atualizar.'; }
+  if (withRuns) { try { S.runs = await loadRuns(); } catch {} }
+  // limpa pedidos já resolvidos
+  const ped = pending(); let mudou = false;
+  for (const id in ped) { const p = S.fila.find(x => String(x.id) === id); if (!p || p.status === 'publicado' || Date.now() - ped[id] > 15 * 60e3) { delete ped[id]; mudou = true; } }
+  if (mudou) store.set('pendentes', ped);
+  render();
+}
+
+/* ---------- carrossel ---------- */
+function carousel(slides) {
+  const n = slides.length;
+  return `<div class="car" data-i="0" data-n="${n}">
+    <div class="car-track">${slides.map(s => `<img src="${esc(s)}" alt="" loading="lazy" draggable="false">`).join('')}</div>
+    ${n > 1 ? `<span class="car-n">1/${n}</span>
+      <button type="button" class="car-btn p" data-car="-1" aria-label="Slide anterior" hidden>‹</button>
+      <button type="button" class="car-btn n" data-car="1" aria-label="Próximo slide">›</button>` : ''}
+  </div>`;
+}
+function carMove(car, d) {
+  const n = +car.dataset.n, i = Math.max(0, Math.min(n - 1, +car.dataset.i + d));
+  car.dataset.i = i;
+  car.querySelector('.car-track').style.transform = `translateX(-${i * 100}%)`;
+  const c = car.querySelector('.car-n'); if (c) c.textContent = `${i + 1}/${n}`;
+  const p = car.querySelector('.p'), nx = car.querySelector('.n'); if (p) p.hidden = i === 0; if (nx) nx.hidden = i === n - 1;
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-car]'); if (b) { e.stopPropagation(); carMove(b.closest('.car'), +b.dataset.car); } });
+let touchX = null;
+document.addEventListener('touchstart', e => { if (e.target.closest('.car')) touchX = e.touches[0].clientX; }, {passive: true});
+document.addEventListener('touchend', e => { const car = e.target.closest('.car'); if (car && touchX != null) { const dx = e.changedTouches[0].clientX - touchX; if (Math.abs(dx) > 40) carMove(car, dx < 0 ? 1 : -1); } touchX = null; });
+
+/* ---------- janelas ---------- */
+function openModal(html, cls = '') {
+  $('#modalRoot').innerHTML = `<div class="overlay" id="ov"><div class="modal ${cls}" role="dialog" aria-modal="true">${html}</div></div>`;
+  $('#ov').onclick = e => { if (e.target.id === 'ov') closeModal(); };
+  setTimeout(() => $('#ov .modal [autofocus], #ov .modal button')?.focus(), 30);
+}
+function closeModal() { $('#modalRoot').innerHTML = ''; }
+document.addEventListener('keydown', e => {
+  if (!$('#ov')) return;
+  if (e.key === 'Escape') closeModal();
+  const car = $('#ov .car'); if (car && e.target.tagName !== 'INPUT') { if (e.key === 'ArrowRight') carMove(car, 1); if (e.key === 'ArrowLeft') carMove(car, -1); }
+});
+document.addEventListener('click', e => { const b = e.target.closest('[data-open-post]'); if (b) openPost(b.dataset.openPost); });
+
+function openPost(id) {
+  const p = S.fila.find(x => String(x.id) === String(id)); if (!p) return;
+  const st = statusOf(p), slides = p.arquivos.map(a => 'midia/' + a);
+  const canPub = ['agendado', 'erro', 'atrasado'].includes(st);
+  const tags = esc(p.legenda || '').replace(/#[\wÀ-ÿ]+/g, h => `<span class="tag">${h}</span>`);
+  openModal(`<div class="m-media">${carousel(slides)}</div>
+    <div class="m-body">
+      <div style="display:flex;align-items:center;gap:10px">
+        <img src="../img/simbolo.png" alt="" style="width:34px;height:34px;border-radius:50%;object-fit:contain;background:#fff;padding:3px">
+        <div><b>crucialssmaoficial</b><div class="hint">${p.status === 'publicado' ? 'Publicado' : 'Agendado'} · ${esc(dLong(p.status === 'publicado' && p.publicado_em ? p.publicado_em : p.quando))}</div></div>
+        <button type="button" class="m-close" onclick="closeModal()" aria-label="Fechar">${X}</button>
+      </div>
+      <div><span class="status ${st}">${LABEL[st]}</span> <span class="hint">${esc(TYPE[p.tipo] || p.tipo)} · ${slides.length} ${slides.length > 1 ? 'imagens' : 'imagem'}</span></div>
+      ${p.erro ? `<div class="err-msg">${esc(p.erro)}</div>` : ''}
+      ${st === 'publicando' ? `<div class="banner">O robô está publicando. Leva de 1 a 3 minutos; esta página atualiza sozinha.</div>` : ''}
+      <div class="cap">${tags || '<i>(sem legenda)</i>'}</div>
+      <div class="btns">
+        ${canPub ? `<button class="btn" type="button" id="pubNow">Publicar agora</button>` : ''}
+        ${p.link ? `<a class="btn ghost" href="${esc(p.link)}" target="_blank" rel="noopener">Abrir no Instagram</a>` : ''}
+      </div>
+      ${canPub ? `<p class="hint" style="margin:0">Publica já no Instagram, sem esperar ${esc(dLong(p.quando))}.</p>` : ''}
+    </div>`);
+  if (canPub) $('#pubNow').onclick = () => publishNow(p.id);
+}
+
+/* ---------- publicar agora (dispara o robô no GitHub) ---------- */
+function tokenModal(then) {
+  openModal(`<div class="m-body">
+    <div style="display:flex;align-items:center"><h2 style="margin:0;font-size:17px">Liberar "Publicar agora" neste aparelho</h2><button type="button" class="m-close" onclick="closeModal()" aria-label="Fechar">${X}</button></div>
+    <p class="hint" style="margin:0">Esta página é pública, então quem aperta o botão precisa provar que é dono do repositório. Faça uma vez em cada aparelho:</p>
+    <ol class="steps">
+      <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">criar token no GitHub</a> (entre com a conta <b>bessasst-jpg</b>).</li>
+      <li>Nome: <i>painel instagram</i>. Validade: a que preferir (ex.: 1 ano).</li>
+      <li>Em <b>Repository access</b>, escolha <b>Only select repositories</b> → <b>crucialssma</b>.</li>
+      <li>Em <b>Permissions</b> → <b>Actions</b>, marque <b>Read and write</b>. Nada mais.</li>
+      <li>Clique em <b>Generate token</b>, copie e cole abaixo.</li>
+    </ol>
+    <form id="tkForm">
+      <label for="tk">Token</label>
+      <input id="tk" type="password" autocomplete="off" placeholder="github_pat_…" required autofocus>
+      <p class="err-msg" id="tkErr"></p>
+      <div class="btns"><button class="btn" type="submit">Salvar e continuar</button></div>
+    </form>
+    <p class="hint" style="margin:0">O token fica guardado só neste navegador. Ele só consegue rodar o robô deste repositório; não dá acesso ao Instagram nem aos arquivos.</p>
+  </div>`, 'small');
+  $('#tkForm').onsubmit = async e => {
+    e.preventDefault();
+    const tok = $('#tk').value.trim();
+    const r = await fetch(`${GH}/actions/workflows/${WORKFLOW}`, {headers: {Authorization: 'Bearer ' + tok}}).catch(() => null);
+    if (!r || !r.ok) { $('#tkErr').textContent = 'Token não aceito pelo GitHub. Confira se copiou inteiro e se escolheu o repositório crucialssma.'; return; }
+    store.set('ghToken', tok); closeModal(); toast('Pronto, este aparelho pode publicar.'); renderSys();
+    if (then) then();
+  };
+}
+async function publishNow(id) {
+  const tok = store.get('ghToken', '');
+  if (!tok) return tokenModal(() => publishNow(id));
+  const p = S.fila.find(x => x.id === id);
+  if (!confirm(`Publicar agora no Instagram o post de ${dLong(p.quando)}?`)) return;
+  const btn = $('#pubNow'); if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
+  let r;
+  try {
+    r = await fetch(`${GH}/actions/workflows/${WORKFLOW}/dispatches`, {
+      method: 'POST', headers: {Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json'},
+      body: JSON.stringify({ref: BRANCH, inputs: {post_id: String(id)}}),
+    });
+  } catch { r = null; }
+  if (!r || r.status !== 204) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Publicar agora'; }
+    if (r && (r.status === 401 || r.status === 403 || r.status === 404)) {
+      store.set('ghToken', null); renderSys();
+      toast('O token venceu ou não tem permissão de Actions. Cadastre de novo.');
+      return tokenModal(() => publishNow(id));
+    }
+    return toast('Não consegui falar com o GitHub. Tente de novo em instantes.');
+  }
+  const ped = pending(); ped[id] = Date.now(); store.set('pendentes', ped);
+  closeModal(); toast('Enviado! O robô começa em alguns segundos e publica em 1 a 3 minutos.');
+  render(); fastPoll();
+}
+let fastTimer = null;
+function fastPoll() { // confere a cada 20 s enquanto há publicação em andamento
+  clearTimeout(fastTimer);
+  fastTimer = setTimeout(async () => { await refresh(true); if (Object.keys(pending()).length) fastPoll(); }, 20000);
+}
+
+/* ---------- telas ---------- */
 function countdown(q) {
-  const ms = new Date(q + ':00-03:00') - Date.now();
+  const ms = brDate(q) - Date.now();
   if (ms <= 0) return 'saindo agora';
   const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
-  return (d ? d + 'd ' : '') + (d || h ? h + 'h ' : '') + m + 'min';
+  return 'em ' + (d ? d + 'd ' : '') + (d || h ? h + 'h ' : '') + m + 'min';
+}
+const sorted = () => [...S.fila].sort((a, b) => a.quando.localeCompare(b.quando));
+const upcoming = () => sorted().filter(p => p.status !== 'publicado');
+
+function renderSys() {
+  const run = S.runs[0], tok = store.get('ghToken', '');
+  const fila = S.fila.filter(p => p.status === 'agendado').length;
+  const runTxt = !run ? ['', 'Robô: sem execuções recentes'] :
+    run.status !== 'completed' ? ['warn', 'Robô rodando agora'] :
+    run.conclusion === 'success' ? ['ok', 'Robô ok · ' + hm(run.updated_at)] : ['no', 'Robô falhou · ' + hm(run.updated_at)];
+  $('#sys').innerHTML = `<div><i class="dot ${runTxt[0]}"></i>${runTxt[1]}</div>
+    <div><i class="dot ${tok ? 'ok' : ''}"></i>${tok ? 'Publicar agora liberado' : '<button type="button" id="sysTok">Liberar "Publicar agora"</button>'}</div>
+    <div><i class="dot ${fila ? 'ok' : 'warn'}"></i>${fila} na fila</div>
+    ${tok ? '<div><button type="button" id="sysOut">Esquecer token deste aparelho</button></div>' : ''}`;
+  $('#sysTok')?.addEventListener('click', () => tokenModal());
+  $('#sysOut')?.addEventListener('click', () => { if (confirm('Remover o token deste navegador?')) { store.set('ghToken', null); renderSys(); } });
+}
+function renderBanners() {
+  const b = [];
+  if (S.loadErr) b.push(`<div class="banner err">${esc(S.loadErr)}</div>`);
+  const errs = S.fila.filter(p => p.status === 'erro').length;
+  if (errs) b.push(`<div class="banner err">${errs} post${errs > 1 ? 's' : ''} com erro. Abra na Agenda para ver o motivo e tentar de novo.</div>`);
+  $('#banners').innerHTML = b.join('');
+}
+function renderNext() {
+  const p = upcoming()[0];
+  if (!p) { $('#nextPost').innerHTML = '<p class="hint">Nenhum post na fila.</p>'; return; }
+  const st = statusOf(p), canPub = ['agendado', 'erro', 'atrasado'].includes(st);
+  $('#nextPost').innerHTML = `<div class="next">
+    <img src="${esc(cover(p))}" alt="Abrir post" data-open-post="${p.id}">
+    <div class="info">
+      <div class="count">${st === 'publicando' ? 'publicando…' : esc(countdown(p.quando))}</div>
+      <div><b>${esc(dLong(p.quando))}</b> <span class="status ${st}">${LABEL[st]}</span></div>
+      <div class="hint clamp">${esc((p.legenda || '').split('\n')[0])}</div>
+      <div class="btns" style="margin-top:auto">
+        <button class="btn ghost small" type="button" data-open-post="${p.id}">Ver post</button>
+        ${canPub ? `<button class="btn small" type="button" id="nextPub">Publicar agora</button>` : ''}
+      </div>
+    </div></div>`;
+  $('#nextPub')?.addEventListener('click', () => publishNow(p.id));
+}
+function renderChecks() {
+  const run = S.runs.find(r => r.status === 'completed');
+  const last = S.fila.filter(p => p.status === 'publicado').sort((a, b) => (b.publicado_em || b.quando).localeCompare(a.publicado_em || a.quando))[0];
+  const items = [
+    [run ? (run.conclusion === 'success' ? 'ok' : 'no') : '', 'Última verificação', run ? `${new Date(run.updated_at).toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'})} · ${run.conclusion === 'success' ? 'tudo certo' : 'falhou — veja no GitHub'}` : 'Sem dados agora'],
+    ['ok', 'Agendamento automático', 'O robô confere a fila a cada 15 minutos (às vezes o GitHub atrasa alguns minutos).'],
+    [last ? 'ok' : '', 'Último publicado', last ? `${dLong(last.publicado_em || last.quando)}${last.link ? ` · <a href="${esc(last.link)}" target="_blank" rel="noopener">ver</a>` : ''}` : 'Nenhum ainda'],
+    [store.get('ghToken', '') ? 'ok' : 'warn', 'Publicar agora', store.get('ghToken', '') ? 'Liberado neste aparelho.' : 'Precisa liberar neste aparelho (pede um token do GitHub uma vez).'],
+  ];
+  $('#checks').innerHTML = items.map(([c, t, d]) => `<div><i class="dot ${c}"></i><div><b>${t}</b><div class="hint">${d}</div></div></div>`).join('')
+    + `<div><a class="hint" href="https://github.com/${REPO}/actions" target="_blank" rel="noopener">Ver execuções no GitHub</a></div>`;
+}
+function renderKpis() {
+  const pub = S.fila.filter(p => p.status === 'publicado').length, fila = S.fila.filter(p => p.status === 'agendado').length;
+  const err = S.fila.filter(p => p.status === 'erro').length;
+  const sem = new Date(Date.now() + 7 * 864e5 - 3 * 3600e3).toISOString().slice(0, 16);
+  const prox7 = S.fila.filter(p => p.status === 'agendado' && p.quando <= sem).length;
+  const ult = sorted().filter(p => p.status === 'agendado').pop();
+  $('#kpis').innerHTML = [
+    ['Publicados', pub, 'pelo robô na nuvem'],
+    ['Na fila', fila, ult ? 'até ' + dShort(ult.quando) : 'fila vazia'],
+    ['Próximos 7 dias', prox7, 'posts agendados'],
+    ['Com erro', err, err ? 'abra para ver o motivo' : 'nenhum problema'],
+  ].map(([l, v, s]) => `<div class="card kpi"><div class="label">${l}</div><div class="val">${v}</div><div class="sub">${s}</div></div>`).join('');
+}
+function stripHTML(list, empty) {
+  return list.length ? list.map(p => { const st = statusOf(p); return `<button type="button" data-open-post="${p.id}"><img src="${esc(cover(p))}" alt="" loading="lazy"><span>${esc(dLong(p.quando))}${st !== 'agendado' && st !== 'publicado' ? ` · ${LABEL[st]}` : ''}</span></button>`; }).join('') : `<p class="hint">${empty}</p>`;
+}
+function renderCal() {
+  if (!S.month) { const t = nowBR(); S.month = new Date(+t.slice(0, 4), +t.slice(5, 7) - 1, 1); }
+  const m = S.month, start = new Date(m);
+  start.setDate(1 - ((m.getDay() + 6) % 7));
+  $('#calTitle').textContent = m.toLocaleDateString('pt-BR', {month: 'long', year: 'numeric'});
+  const key = d => d.toLocaleDateString('sv-SE'), today = nowBR().slice(0, 10);
+  const byDay = {};
+  S.fila.forEach(p => (byDay[p.quando.slice(0, 10)] ||= []).push(p));
+  let html = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'].map(d => `<div class="wd">${d}</div>`).join('');
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const ps = (byDay[key(d)] || []).sort((a, b) => a.quando.localeCompare(b.quando));
+    html += `<div class="day ${d.getMonth() !== m.getMonth() ? 'out' : ''} ${key(d) === today ? 'today' : ''}"><b>${d.getDate()}</b>${ps.map(p => { const st = statusOf(p);
+      return `<button type="button" class="ev ${st}" data-open-post="${p.id}" aria-label="${esc(dLong(p.quando))}, ${LABEL[st]}"><img src="${esc(cover(p))}" alt="" loading="lazy"><span>${esc(p.quando.slice(11, 16))}<br>${LABEL[st]}</span></button>`; }).join('')}</div>`;
+  }
+  $('#cal').innerHTML = html;
+}
+$('#calPrev').onclick = () => { S.month.setMonth(S.month.getMonth() - 1); renderCal(); };
+$('#calNext').onclick = () => { S.month.setMonth(S.month.getMonth() + 1); renderCal(); };
+$('#calToday').onclick = () => { S.month = null; renderCal(); };
+document.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+  S.agView = b.dataset.a; document.querySelectorAll('[data-a]').forEach(x => x.classList.toggle('on', x === b));
+  $('#agCal').hidden = S.agView !== 'cal'; $('#agList').hidden = S.agView === 'cal';
+});
+function renderList() {
+  const rows = sorted();
+  $('#postTable').innerHTML = rows.length ? `<tr><th></th><th>Quando</th><th>Tipo</th><th>Legenda</th><th>Status</th><th></th></tr>` + rows.map(r => { const st = statusOf(r); return `<tr>
+    <td><img class="thumb" src="${esc(cover(r))}" alt="" loading="lazy"></td><td style="white-space:nowrap">${esc(dLong(r.quando))}</td><td>${esc(TYPE[r.tipo] || r.tipo)}</td>
+    <td><div class="clamp" style="max-width:380px">${esc(r.legenda)}</div></td>
+    <td><span class="status ${st}">${LABEL[st]}</span>${r.erro ? `<div class="err-msg">${esc(r.erro)}</div>` : ''}${r.link ? ` <a href="${esc(r.link)}" target="_blank" rel="noopener">ver</a>` : ''}</td>
+    <td style="white-space:nowrap"><button class="btn ghost small" type="button" data-open-post="${r.id}">Abrir</button></td></tr>`; }).join('')
+    : '<tr><td class="hint">Nenhum post na fila.</td></tr>';
 }
 function render() {
-  const fil = fila.filter(p => filtro === 'todos' || p.status === filtro)
-    .sort((a, b) => filtro === 'publicado' ? b.quando.localeCompare(a.quando) : a.quando.localeCompare(b.quando));
-  $('list').innerHTML = fil.length ? fil.map(card).join('') : '<p class="empty">Nada por aqui.</p>';
-  $('n-pub').textContent = fila.filter(p => p.status === 'publicado').length;
-  $('n-fila').textContent = fila.filter(p => p.status === 'agendado').length;
-  $('n-err').textContent = fila.filter(p => p.status === 'erro').length;
-  const prox = fila.filter(p => p.status === 'agendado').sort((a, b) => a.quando.localeCompare(b.quando))[0];
-  const nx = $('next');
-  if (prox) {
-    nx.hidden = false;
-    nx.innerHTML = `<img src="midia/${prox.arquivos[0]}" alt=""><div><small>Próximo post</small><div class="count">${countdown(prox.quando)}</div>
-      <h2>${fmt(prox.quando)}</h2><p>${esc((prox.legenda || '').split('\n')[0])}</p></div>`;
-  } else nx.hidden = true;
+  renderSys(); renderBanners(); renderNext(); renderChecks(); renderKpis();
+  $('#upcoming').innerHTML = stripHTML(upcoming().slice(0, 14), 'Nenhum post na fila.');
+  $('#recent').innerHTML = stripHTML(sorted().filter(p => p.status === 'publicado').reverse().slice(0, 10), 'Nada publicado ainda.');
+  renderCal(); renderList();
 }
-async function load() {
-  try {
-    const r = await fetch('fila.json?t=' + Date.now(), { cache: 'no-store' });
-    fila = await r.json();
-    $('updated').textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    render();
-  } catch (e) { $('updated').textContent = 'Não consegui carregar a fila. Tente atualizar.'; }
-}
-document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => {
-  filtro = b.dataset.f; document.querySelectorAll('[data-f]').forEach(x => x.setAttribute('aria-pressed', x === b)); render();
-}));
-$('refresh').addEventListener('click', load);
-load(); setInterval(load, 60000);
+
+$('#syncBtn').onclick = async () => { const b = $('#syncBtn'); b.disabled = true; await refresh(true); b.disabled = false; toast('Dados atualizados'); };
+{ const t = location.hash.slice(1) || store.get('tab', 'painel'); if (TITLES[t]) go(t); }
+refresh(true);
+if (Object.keys(pending()).length) fastPoll();
+setInterval(() => refresh(false), 60000);       // fila a cada minuto
+setInterval(() => { loadRuns().then(r => { S.runs = r; renderSys(); renderChecks(); }).catch(() => {}); }, 5 * 60000);
+setInterval(() => { if (!$('#ov')) renderNext(); }, 30000); // contagem regressiva
 </script>
 </body>
 </html>

@@ -8,6 +8,8 @@ Variáveis de ambiente:
   IG_ACCESS_TOKEN  token da conta (segredo do repositório)
   IG_USER_ID       id da conta profissional do Instagram
   MEDIA_BASE_URL   endereço público onde ficam as imagens (GitHub Pages)
+  PUBLICAR_ID      (opcional) id de um post para publicar já, mesmo antes do horário
+                   ("Publicar agora" na página de acompanhamento)
 """
 import json
 import os
@@ -44,13 +46,22 @@ def main():
         sys.exit("Faltam IG_ACCESS_TOKEN ou MEDIA_BASE_URL.")
 
     fila = json.loads(FILA.read_text(encoding="utf-8"))
-    pendentes = sorted((p for p in fila if p["status"] == "agendado" and p["quando"] <= agora()),
-                       key=lambda p: p["quando"])
-    if not pendentes:
-        print(f"{agora()} · nada para publicar agora.")
-        return
-
-    post = pendentes[0]
+    pedido = os.environ.get("PUBLICAR_ID", "").strip()
+    if pedido:
+        post = next((p for p in fila if str(p["id"]) == pedido), None)
+        if not post:
+            sys.exit(f"Post {pedido} não está na fila.")
+        if post["status"] not in ("agendado", "erro"):
+            print(f"Post {pedido} já está como '{post['status']}'. Nada a fazer.")
+            return
+        print(f"Publicação adiantada a pedido (estava para {post['quando']}).")
+    else:
+        pendentes = sorted((p for p in fila if p["status"] == "agendado" and p["quando"] <= agora()),
+                           key=lambda p: p["quando"])
+        if not pendentes:
+            print(f"{agora()} · nada para publicar agora.")
+            return
+        post = pendentes[0]
     urls = [f"{base}/instagram/midia/{arq}" for arq in post["arquivos"]]
     fora = [u for u in urls if not url_no_ar(u)]
     if fora:
@@ -67,6 +78,8 @@ def main():
         container = ig.create_container(post["tipo"], urls, post.get("legenda") or "")
         media_id, link = ig.publish(container)
         post.update(status="publicado", erro=None, ig_media_id=media_id, link=link, publicado_em=agora())
+        if pedido and post["quando"] > post["publicado_em"]:  # adiantado: mostra no dia em que saiu
+            post.update(quando_original=post["quando"], quando=post["publicado_em"])
         print("Publicado:", link or media_id)
     except IGError as e:
         post.update(status="erro", erro=str(e))
