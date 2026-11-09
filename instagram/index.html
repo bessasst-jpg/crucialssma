@@ -110,7 +110,19 @@ th{color:var(--muted);font-weight:500;font-size:13px}
 .m-close{margin-left:auto;border:0;background:none;cursor:pointer;color:var(--muted);padding:4px}
 .m-close svg{width:22px;height:22px}
 label{display:block;font-size:13px;color:var(--muted);margin:2px 0 4px}
-input{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font:inherit}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:200px;resize:vertical;line-height:1.45}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.fgrid{grid-template-columns:1fr}}
+.picks{display:flex;flex-wrap:wrap;gap:8px}
+.pick{position:relative;width:84px}
+.pick img,.pick video,.pick .add{width:84px;aspect-ratio:3/4;object-fit:cover;border-radius:8px;display:block;background:var(--bg)}
+.pick .add{border:1.5px dashed var(--line);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;color:var(--muted);font-size:12px;cursor:pointer;text-align:center}
+.pick .add b{font-size:22px;line-height:1;font-weight:400}
+.pick .ctl{display:flex;justify-content:space-between;margin-top:3px}
+.pick .ctl button{border:1px solid var(--line);background:var(--card);border-radius:6px;width:26px;height:24px;cursor:pointer;padding:0;font-size:13px}
+.pick .n{position:absolute;left:4px;top:4px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:700;border-radius:8px;padding:0 6px}
+.car-track video{width:100%;height:100%;object-fit:cover;flex-shrink:0;display:block;background:#000}
 ol.steps{margin:0;padding-left:20px;font-size:14px;display:flex;flex-direction:column;gap:6px}
 .btns{display:flex;flex-wrap:wrap;gap:8px}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:10px 18px;border-radius:10px;z-index:60;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:calc(100% - 32px)}
@@ -140,6 +152,7 @@ ol.steps{margin:0;padding-left:20px;font-size:14px;display:flex;flex-direction:c
     <div class="top">
       <h1 id="title">Painel</h1>
       <button class="btn ghost" id="syncBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2M3 12A9 9 0 0 1 18.5 5.8M18 2v4h-4M6 22v-4h4"/></svg>Atualizar dados</button>
+      <button class="btn" id="newBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo post</button>
     </div>
     <div id="banners"></div>
 
@@ -219,7 +232,10 @@ function statusOf(p) {
   return p.status;
 }
 const LABEL = {agendado: 'agendado', publicado: 'publicado', erro: 'erro', publicando: 'publicando…', atrasado: 'saindo agora'};
-const cover = p => p.arquivos?.[0] ? 'midia/' + p.arquivos[0] : '';
+const isVid = a => /\.(mp4|mov|m4v)$/i.test(a);
+const LOCAL = {}; // mídia recém-enviada: o site leva ~1 min para servir o arquivo novo
+const mediaUrl = a => LOCAL[a] || 'midia/' + a;
+const cover = p => { const a = (p.arquivos || []).find(x => !isVid(x)); return a ? mediaUrl(a) : (p.arquivos?.length ? '../img/simbolo.png' : ''); };
 
 async function loadFila() {
   const tok = store.get('ghToken', '');
@@ -236,7 +252,9 @@ async function loadFila() {
 }
 async function loadRuns() {
   const tok = store.get('ghToken', '');
-  const r = await fetch(`${GH}/actions/workflows/${WORKFLOW}/runs?per_page=5`, {headers: tok ? {Authorization: 'Bearer ' + tok} : {}, cache: 'no-store'});
+  const url = `${GH}/actions/workflows/${WORKFLOW}/runs?per_page=5`;
+  let r = await fetch(url, {headers: tok ? {Authorization: 'Bearer ' + tok} : {}, cache: 'no-store'});
+  if (!r.ok && tok) r = await fetch(url, {cache: 'no-store'}); // token vencido: o repositório é público
   if (!r.ok) return [];
   return (await r.json()).workflow_runs || [];
 }
@@ -254,7 +272,7 @@ async function refresh(withRuns = true) {
 function carousel(slides) {
   const n = slides.length;
   return `<div class="car" data-i="0" data-n="${n}">
-    <div class="car-track">${slides.map(s => `<img src="${esc(s)}" alt="" loading="lazy" draggable="false">`).join('')}</div>
+    <div class="car-track">${slides.map(s => s.vid ? `<video src="${esc(s.src)}" controls playsinline preload="metadata"></video>` : `<img src="${esc(s.src)}" alt="" loading="lazy" draggable="false">`).join('')}</div>
     ${n > 1 ? `<span class="car-n">1/${n}</span>
       <button type="button" class="car-btn p" data-car="-1" aria-label="Slide anterior" hidden>‹</button>
       <button type="button" class="car-btn n" data-car="1" aria-label="Próximo slide">›</button>` : ''}
@@ -288,8 +306,8 @@ document.addEventListener('click', e => { const b = e.target.closest('[data-open
 
 function openPost(id) {
   const p = S.fila.find(x => String(x.id) === String(id)); if (!p) return;
-  const st = statusOf(p), slides = p.arquivos.map(a => 'midia/' + a);
-  const canPub = ['agendado', 'erro', 'atrasado'].includes(st);
+  const st = statusOf(p), slides = p.arquivos.map(a => ({src: mediaUrl(a), vid: isVid(a)}));
+  const editable = ['agendado', 'erro', 'atrasado'].includes(st);
   const tags = esc(p.legenda || '').replace(/#[\wÀ-ÿ]+/g, h => `<span class="tag">${h}</span>`);
   openModal(`<div class="m-media">${carousel(slides)}</div>
     <div class="m-body">
@@ -298,29 +316,215 @@ function openPost(id) {
         <div><b>crucialssmaoficial</b><div class="hint">${p.status === 'publicado' ? 'Publicado' : 'Agendado'} · ${esc(dLong(p.status === 'publicado' && p.publicado_em ? p.publicado_em : p.quando))}</div></div>
         <button type="button" class="m-close" onclick="closeModal()" aria-label="Fechar">${X}</button>
       </div>
-      <div><span class="status ${st}">${LABEL[st]}</span> <span class="hint">${esc(TYPE[p.tipo] || p.tipo)} · ${slides.length} ${slides.length > 1 ? 'imagens' : 'imagem'}</span></div>
+      <div><span class="status ${st}">${LABEL[st]}</span> <span class="hint">${esc(TYPE[p.tipo] || p.tipo)} · ${slides.length} ${slides.length > 1 ? 'arquivos' : 'arquivo'}</span></div>
       ${p.erro ? `<div class="err-msg">${esc(p.erro)}</div>` : ''}
       ${st === 'publicando' ? `<div class="banner">O robô está publicando. Leva de 1 a 3 minutos; esta página atualiza sozinha.</div>` : ''}
-      <div class="cap">${tags || '<i>(sem legenda)</i>'}</div>
-      <div class="btns">
-        ${canPub ? `<button class="btn" type="button" id="pubNow">Publicar agora</button>` : ''}
-        ${p.link ? `<a class="btn ghost" href="${esc(p.link)}" target="_blank" rel="noopener">Abrir no Instagram</a>` : ''}
-      </div>
-      ${canPub ? `<p class="hint" style="margin:0">Publica já no Instagram, sem esperar ${esc(dLong(p.quando))}.</p>` : ''}
+      ${editable ? `
+        <form id="editForm">
+          <label for="edWhen">Data e hora (Brasília)</label>
+          <input type="datetime-local" id="edWhen" value="${esc(p.quando)}" required>
+          ${p.tipo === 'STORIES' ? '' : `<label for="edCap" style="margin-top:10px">Legenda <span class="hint" id="edCount"></span></label>
+          <textarea id="edCap">${esc(p.legenda || '')}</textarea>`}
+          <p class="err-msg" id="edErr"></p>
+          <div class="btns">
+            <button class="btn" type="submit" id="edSave">Salvar</button>
+            <button class="btn ghost" type="button" id="pubNow">Publicar agora</button>
+            <button class="btn danger" type="button" id="edDel">Excluir</button>
+          </div>
+        </form>` : `<div class="cap">${tags || '<i>(sem legenda)</i>'}</div>
+        ${p.link ? `<div><a class="btn ghost" href="${esc(p.link)}" target="_blank" rel="noopener">Abrir no Instagram</a></div>` : ''}`}
     </div>`);
-  if (canPub) $('#pubNow').onclick = () => publishNow(p.id);
+  if (!editable) return;
+  const cap = $('#edCap');
+  if (cap) { const cnt = () => { $('#edCount').textContent = capCount(cap.value); }; cap.oninput = cnt; cnt(); }
+  $('#pubNow').onclick = () => publishNow(p.id);
+  $('#editForm').onsubmit = async e => {
+    e.preventDefault();
+    if (!store.get('ghToken', '')) return tokenModal(() => openPost(p.id));
+    const quando = $('#edWhen').value, legenda = cap ? cap.value : p.legenda;
+    const prob = checkCaption(legenda); if (prob) { $('#edErr').textContent = prob; return; }
+    busy('#edSave', 'Salvando…');
+    try {
+      await commitFila(`Editar post ${p.id}`, fila => {
+        const x = fila.find(y => y.id === p.id);
+        if (!x || x.status === 'publicado') throw new Error('Este post acabou de ser publicado; não dá mais para editar.');
+        Object.assign(x, {quando, legenda, status: 'agendado', erro: null});
+      });
+      closeModal(); toast('Post atualizado.');
+    } catch (err) { $('#edErr').textContent = err.message; busy('#edSave', 'Salvar', false); }
+  };
+  $('#edDel').onclick = async () => {
+    if (!store.get('ghToken', '')) return tokenModal(() => openPost(p.id));
+    if (!confirm('Excluir este post da fila? As imagens dele também serão apagadas do site.')) return;
+    busy('#edDel', 'Excluindo…');
+    try {
+      await commitFila(`Excluir post ${p.id}`, fila => {
+        const i = fila.findIndex(y => y.id === p.id);
+        if (i < 0) return;
+        if (fila[i].status === 'publicado') throw new Error('Este post acabou de ser publicado; não dá mais para excluir.');
+        fila.splice(i, 1);
+      }, [], p.arquivos.map(a => 'instagram/midia/' + a));
+      closeModal(); toast('Post excluído.');
+    } catch (err) { $('#edErr').textContent = err.message; busy('#edDel', 'Excluir', false); }
+  };
 }
+const capCount = v => `· ${v.length}/2200 · ${(v.match(/#[\wÀ-ÿ]+/g) || []).length}/30 hashtags`;
+const checkCaption = v => (v || '').length > 2200 ? 'A legenda passa de 2.200 caracteres.'
+  : ((v || '').match(/#[\wÀ-ÿ]+/g) || []).length > 30 ? 'O Instagram aceita no máximo 30 hashtags.' : '';
+function busy(sel, txt, on = true) { const b = $(sel); if (b) { b.disabled = on; b.textContent = txt; } }
+
+/* ---------- gravar no repositório (API do GitHub) ---------- */
+async function gh(path, opts = {}) {
+  const tok = store.get('ghToken', '');
+  const r = await fetch(GH + path, {...opts, cache: 'no-store', headers: {Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json',
+    ...(opts.body ? {'Content-Type': 'application/json'} : {}), ...(opts.headers || {})}});
+  if (!r.ok) {
+    let msg = ''; try { msg = (await r.json()).message || ''; } catch {}
+    if ([401, 403, 404].includes(r.status)) {
+      store.set('ghToken', null); renderSys();
+      throw Object.assign(new Error('O GitHub recusou o token (venceu ou falta a permissão "Contents: Read and write"). Clique em "Liberar agendar e publicar", no menu, e cadastre de novo.'), {status: r.status});
+    }
+    throw Object.assign(new Error(msg || 'GitHub ' + r.status), {status: r.status});
+  }
+  return r.status === 204 ? null : r.json();
+}
+const blobB64 = b => new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result.split(',')[1]); fr.onerror = no; fr.readAsDataURL(b); });
+// Um commit só: arquivos novos + fila.json alterada (+ arquivos apagados). Se o robô gravou
+// a fila no meio do caminho, relê e aplica a mudança de novo.
+async function commitFila(msg, mutate, newFiles = [], delPaths = []) {
+  const blobs = [];
+  for (const f of newFiles) {
+    const b = await gh('/git/blobs', {method: 'POST', body: JSON.stringify({content: f.b64, encoding: 'base64'})});
+    blobs.push({path: f.path, mode: '100644', type: 'blob', sha: b.sha});
+  }
+  for (let tent = 0; tent < 4; tent++) {
+    const ref = await gh(`/git/ref/heads/${BRANCH}`), head = ref.object.sha;
+    const base = await gh(`/git/commits/${head}`);
+    const fila = await gh(`/contents/instagram/fila.json?ref=${head}`, {headers: {Accept: 'application/vnd.github.raw+json'}});
+    mutate(fila);
+    const fb = await gh('/git/blobs', {method: 'POST', body: JSON.stringify({content: JSON.stringify(fila, null, 2) + '\n', encoding: 'utf-8'})});
+    const tree = await gh('/git/trees', {method: 'POST', body: JSON.stringify({base_tree: base.tree.sha, tree: [
+      ...blobs, {path: 'instagram/fila.json', mode: '100644', type: 'blob', sha: fb.sha},
+      ...delPaths.map(path => ({path, mode: '100644', type: 'blob', sha: null}))]})});
+    const c = await gh('/git/commits', {method: 'POST', body: JSON.stringify({message: msg + ' (pelo painel)', tree: tree.sha, parents: [head]})});
+    try {
+      await gh(`/git/refs/heads/${BRANCH}`, {method: 'PATCH', body: JSON.stringify({sha: c.sha, force: false})});
+      S.fila = fila; render(); return fila;
+    } catch (e) { if (e.status !== 422) throw e; await new Promise(r => setTimeout(r, 1500)); }
+  }
+  throw new Error('O repositório estava ocupado. Tente de novo em instantes.');
+}
+
+/* ---------- novo post ---------- */
+const NF = {items: []};
+async function toJpeg(file) {
+  const bmp = await createImageBitmap(file);
+  const k = Math.min(1, 1440 / bmp.width), w = Math.round(bmp.width * k), h = Math.round(bmp.height * k);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.drawImage(bmp, 0, 0, w, h);
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.9));
+  return {blob, ratio: w / h};
+}
+function newPost() {
+  if (!store.get('ghToken', '')) return tokenModal(newPost);
+  NF.items.forEach(i => URL.revokeObjectURL(i.url)); NF.items = [];
+  const amanha = new Date(Date.now() + 21 * 3600e3).toISOString().slice(0, 10); // amanhã no horário de Brasília
+  openModal(`<div class="m-body">
+    <div style="display:flex;align-items:center"><h2 style="margin:0;font-size:17px">Novo post</h2><button type="button" class="m-close" onclick="closeModal()" aria-label="Fechar">${X}</button></div>
+    <form id="nf">
+      <div class="fgrid">
+        <div><label for="nfType">Tipo</label>
+          <select id="nfType"><option value="CAROUSEL">Carrossel (2 a 10 imagens)</option><option value="IMAGE">Foto</option><option value="REELS">Reels (vídeo MP4)</option><option value="STORIES">Story (imagem ou vídeo)</option></select></div>
+        <div><label for="nfWhen">Data e hora (Brasília)</label><input type="datetime-local" id="nfWhen" value="${amanha}T12:00" required></div>
+      </div>
+      <label style="margin-top:12px">Mídia <span class="hint" id="nfHint"></span></label>
+      <div class="picks" id="nfPicks"></div>
+      <input type="file" id="nfFile" multiple hidden>
+      <div id="nfCapWrap"><label for="nfCap" style="margin-top:12px">Legenda <span class="hint" id="nfCount"></span></label>
+      <textarea id="nfCap" placeholder="Texto do post, chamada para ação e hashtags"></textarea></div>
+      <p class="err-msg" id="nfErr"></p>
+      <div class="btns"><button class="btn" type="submit" id="nfSave">Agendar</button><button class="btn ghost" type="button" onclick="closeModal()">Cancelar</button></div>
+      <p class="hint" style="margin:8px 0 0">As imagens viram JPEG automaticamente. O robô publica no horário marcado (ou use "Publicar agora" depois).</p>
+    </form>
+  </div>`, 'small');
+  const type = () => $('#nfType').value;
+  const cap = $('#nfCap'); cap.oninput = () => { $('#nfCount').textContent = capCount(cap.value); }; cap.oninput();
+  const max = () => ({CAROUSEL: 10, IMAGE: 1, REELS: 1, STORIES: 1})[type()];
+  const accept = () => ({REELS: 'video/mp4,video/quicktime', STORIES: 'image/*,video/mp4'})[type()] || 'image/*';
+  const draw = () => {
+    $('#nfFile').accept = accept(); $('#nfFile').multiple = max() > 1;
+    $('#nfCapWrap').hidden = type() === 'STORIES';
+    $('#nfHint').textContent = {CAROUSEL: '· a 1ª é a capa; use as setas para mudar a ordem', IMAGE: '· 1 imagem', REELS: '· 1 vídeo MP4, até 40 MB', STORIES: '· 1 imagem ou vídeo'}[type()];
+    $('#nfPicks').innerHTML = NF.items.map((it, i) => `<div class="pick">${it.vid ? `<video src="${it.url}" muted preload="metadata"></video>` : `<img src="${it.url}" alt="">`}
+      <span class="n">${i + 1}</span>
+      <div class="ctl">${max() > 1 ? `<button type="button" data-mv="${i}" data-d="-1" aria-label="Mover para a esquerda" ${i ? '' : 'disabled'}>‹</button>` : '<span></span>'}
+      <button type="button" data-rm="${i}" aria-label="Remover">×</button>
+      ${max() > 1 ? `<button type="button" data-mv="${i}" data-d="1" aria-label="Mover para a direita" ${i < NF.items.length - 1 ? '' : 'disabled'}>›</button>` : '<span></span>'}</div></div>`).join('')
+      + (NF.items.length < max() ? `<div class="pick"><button type="button" class="add" id="nfAdd"><b>+</b>${NF.items.length ? 'Adicionar' : 'Escolher'}</button></div>` : '');
+    $('#nfAdd')?.addEventListener('click', () => $('#nfFile').click());
+  };
+  $('#nfType').onchange = () => { NF.items.splice(max()).forEach(i => URL.revokeObjectURL(i.url)); draw(); };
+  $('#nfPicks').onclick = e => {
+    const mv = e.target.closest('[data-mv]'), rm = e.target.closest('[data-rm]');
+    if (mv) { const i = +mv.dataset.mv, j = i + +mv.dataset.d; [NF.items[i], NF.items[j]] = [NF.items[j], NF.items[i]]; draw(); }
+    if (rm) { URL.revokeObjectURL(NF.items[+rm.dataset.rm].url); NF.items.splice(+rm.dataset.rm, 1); draw(); }
+  };
+  $('#nfFile').onchange = e => {
+    $('#nfErr').textContent = '';
+    for (const f of e.target.files) {
+      if (NF.items.length >= max()) break;
+      const vid = f.type.startsWith('video/');
+      if (vid && type() !== 'REELS' && type() !== 'STORIES') { $('#nfErr').textContent = 'Carrossel e Foto aceitam só imagens.'; continue; }
+      if (!vid && type() === 'REELS') { $('#nfErr').textContent = 'Reels precisa de um vídeo MP4.'; continue; }
+      if (vid && f.size > 40e6) { $('#nfErr').textContent = 'Vídeo maior que 40 MB. Exporte em tamanho menor.'; continue; }
+      NF.items.push({file: f, vid, url: URL.createObjectURL(f)});
+    }
+    e.target.value = ''; draw();
+  };
+  draw();
+  $('#nf').onsubmit = async e => {
+    e.preventDefault();
+    const err = m => { $('#nfErr').textContent = m; };
+    const quando = $('#nfWhen').value, legenda = type() === 'STORIES' ? '' : cap.value.trim();
+    if (type() === 'CAROUSEL' && NF.items.length < 2) return err('O carrossel precisa de pelo menos 2 imagens. Para uma só, escolha "Foto".');
+    if (!NF.items.length) return err('Escolha a mídia do post.');
+    if (quando < nowBR()) return err('Esse horário já passou. Escolha um horário futuro (ou agende e depois use "Publicar agora").');
+    const prob = checkCaption(legenda); if (prob) return err(prob);
+    try {
+      busy('#nfSave', 'Preparando mídia…');
+      const files = [], nomes = [], previews = {};
+      for (const it of NF.items) {
+        const id = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, '');
+        let blob = it.file, nome;
+        if (it.vid) nome = id + '.mp4';
+        else {
+          const j = await toJpeg(it.file); blob = j.blob; nome = id + '.jpg';
+          if (type() !== 'STORIES' && (j.ratio < 0.74 || j.ratio > 1.91)) throw new Error('Uma imagem está alta ou larga demais para o feed. Use de 3:4 (retrato) até 1,91:1 (paisagem).');
+        }
+        files.push({path: 'instagram/midia/' + nome, b64: await blobB64(blob)}); nomes.push(nome);
+        previews[nome] = URL.createObjectURL(blob);
+      }
+      busy('#nfSave', 'Enviando…');
+      Object.assign(LOCAL, previews);
+      await commitFila('Novo post agendado', fila => {
+        fila.push({id: Math.max(0, ...fila.map(x => +x.id || 0)) + 1, tipo: type(), quando, status: 'agendado', arquivos: nomes, legenda, erro: null, link: null});
+      }, files);
+      closeModal(); toast(`Agendado para ${dLong(quando)}.`);
+    } catch (ex) { err(ex.message); busy('#nfSave', 'Agendar', false); }
+  };
+}
+$('#newBtn').onclick = newPost;
 
 /* ---------- publicar agora (dispara o robô no GitHub) ---------- */
 function tokenModal(then) {
   openModal(`<div class="m-body">
-    <div style="display:flex;align-items:center"><h2 style="margin:0;font-size:17px">Liberar "Publicar agora" neste aparelho</h2><button type="button" class="m-close" onclick="closeModal()" aria-label="Fechar">${X}</button></div>
-    <p class="hint" style="margin:0">Esta página é pública, então quem aperta o botão precisa provar que é dono do repositório. Faça uma vez em cada aparelho:</p>
+    <div style="display:flex;align-items:center"><h2 style="margin:0;font-size:17px">Liberar este aparelho para agendar e publicar</h2><button type="button" class="m-close" onclick="closeModal()" aria-label="Fechar">${X}</button></div>
+    <p class="hint" style="margin:0">Esta página é pública, então quem agenda ou publica precisa provar que é dono do repositório. Faça uma vez em cada aparelho:</p>
     <ol class="steps">
       <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">criar token no GitHub</a> (entre com a conta <b>bessasst-jpg</b>).</li>
       <li>Nome: <i>painel instagram</i>. Validade: a que preferir (ex.: 1 ano).</li>
       <li>Em <b>Repository access</b>, escolha <b>Only select repositories</b> → <b>crucialssma</b>.</li>
-      <li>Em <b>Permissions</b> → <b>Actions</b>, marque <b>Read and write</b>. Nada mais.</li>
+      <li>Em <b>Permissions</b> → <b>Repository permissions</b>, marque <b>Read and write</b> em <b>Actions</b> e em <b>Contents</b>. Nada mais.</li>
       <li>Clique em <b>Generate token</b>, copie e cole abaixo.</li>
     </ol>
     <form id="tkForm">
@@ -329,14 +533,14 @@ function tokenModal(then) {
       <p class="err-msg" id="tkErr"></p>
       <div class="btns"><button class="btn" type="submit">Salvar e continuar</button></div>
     </form>
-    <p class="hint" style="margin:0">O token fica guardado só neste navegador. Ele só consegue rodar o robô deste repositório; não dá acesso ao Instagram nem aos arquivos.</p>
+    <p class="hint" style="margin:0">O token fica guardado só neste navegador. Ele só mexe neste repositório (fila de posts e imagens); não dá acesso à senha do Instagram nem a outros repositórios.</p>
   </div>`, 'small');
   $('#tkForm').onsubmit = async e => {
     e.preventDefault();
     const tok = $('#tk').value.trim();
     const r = await fetch(`${GH}/actions/workflows/${WORKFLOW}`, {headers: {Authorization: 'Bearer ' + tok}}).catch(() => null);
     if (!r || !r.ok) { $('#tkErr').textContent = 'Token não aceito pelo GitHub. Confira se copiou inteiro e se escolheu o repositório crucialssma.'; return; }
-    store.set('ghToken', tok); closeModal(); toast('Pronto, este aparelho pode publicar.'); renderSys();
+    store.set('ghToken', tok); closeModal(); toast('Pronto, este aparelho pode agendar e publicar.'); renderSys();
     if (then) then();
   };
 }
@@ -389,7 +593,7 @@ function renderSys() {
     run.status !== 'completed' ? ['warn', 'Robô rodando agora'] :
     run.conclusion === 'success' ? ['ok', 'Robô ok · ' + hm(run.updated_at)] : ['no', 'Robô falhou · ' + hm(run.updated_at)];
   $('#sys').innerHTML = `<div><i class="dot ${runTxt[0]}"></i>${runTxt[1]}</div>
-    <div><i class="dot ${tok ? 'ok' : ''}"></i>${tok ? 'Publicar agora liberado' : '<button type="button" id="sysTok">Liberar "Publicar agora"</button>'}</div>
+    <div><i class="dot ${tok ? 'ok' : ''}"></i>${tok ? 'Agendar e publicar liberado' : '<button type="button" id="sysTok">Liberar agendar e publicar</button>'}</div>
     <div><i class="dot ${fila ? 'ok' : 'warn'}"></i>${fila} na fila</div>
     ${tok ? '<div><button type="button" id="sysOut">Esquecer token deste aparelho</button></div>' : ''}`;
   $('#sysTok')?.addEventListener('click', () => tokenModal());
@@ -426,7 +630,7 @@ function renderChecks() {
     [run ? (run.conclusion === 'success' ? 'ok' : 'no') : '', 'Última verificação', run ? `${new Date(run.updated_at).toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'})} · ${run.conclusion === 'success' ? 'tudo certo' : 'falhou — veja no GitHub'}` : 'Sem dados agora'],
     ['ok', 'Agendamento automático', 'O robô confere a fila a cada 15 minutos (às vezes o GitHub atrasa alguns minutos).'],
     [last ? 'ok' : '', 'Último publicado', last ? `${dLong(last.publicado_em || last.quando)}${last.link ? ` · <a href="${esc(last.link)}" target="_blank" rel="noopener">ver</a>` : ''}` : 'Nenhum ainda'],
-    [store.get('ghToken', '') ? 'ok' : 'warn', 'Publicar agora', store.get('ghToken', '') ? 'Liberado neste aparelho.' : 'Precisa liberar neste aparelho (pede um token do GitHub uma vez).'],
+    [store.get('ghToken', '') ? 'ok' : 'warn', 'Agendar e publicar', store.get('ghToken', '') ? 'Liberado neste aparelho.' : 'Precisa liberar neste aparelho (pede um token do GitHub uma vez).'],
   ];
   $('#checks').innerHTML = items.map(([c, t, d]) => `<div><i class="dot ${c}"></i><div><b>${t}</b><div class="hint">${d}</div></div></div>`).join('')
     + `<div><a class="hint" href="https://github.com/${REPO}/actions" target="_blank" rel="noopener">Ver execuções no GitHub</a></div>`;
