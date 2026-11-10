@@ -382,7 +382,9 @@ async function gh(path, opts = {}) {
     let msg = ''; try { msg = (await r.json()).message || ''; } catch {}
     if ([401, 403, 404].includes(r.status)) {
       store.set('ghToken', null); renderSys();
-      throw Object.assign(new Error('O GitHub recusou o token (venceu ou falta a permissão "Contents: Read and write"). Clique em "Liberar agendar e publicar", no menu, e cadastre de novo.'), {status: r.status});
+      const why = r.status === 401 ? 'o token venceu ou foi apagado'
+        : 'o token não tem permissão "Contents: Read and write" no repositório crucialssma';
+      throw Object.assign(new Error(`O GitHub recusou o token: ${why}. Clique em "Liberar agendar e publicar", no menu, e cadastre de novo. (GitHub ${r.status}${msg ? ': ' + msg : ''})`), {status: r.status});
     }
     throw Object.assign(new Error(msg || 'GitHub ' + r.status), {status: r.status});
   }
@@ -538,8 +540,21 @@ function tokenModal(then) {
   $('#tkForm').onsubmit = async e => {
     e.preventDefault();
     const tok = $('#tk').value.trim();
-    const r = await fetch(`${GH}/actions/workflows/${WORKFLOW}`, {headers: {Authorization: 'Bearer ' + tok}}).catch(() => null);
-    if (!r || !r.ok) { $('#tkErr').textContent = 'Token não aceito pelo GitHub. Confira se copiou inteiro e se escolheu o repositório crucialssma.'; return; }
+    const err = t => { $('#tkErr').textContent = t; };
+    err('Conferindo o token…');
+    // O repositório é público: qualquer token válido consegue LER. Por isso o teste grava um
+    // blob solto (não entra em nenhum commit e o GitHub descarta) para provar a permissão de escrita.
+    const r = await fetch(`${GH}/git/blobs`, {method: 'POST', cache: 'no-store',
+      headers: {Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json'},
+      body: JSON.stringify({content: 'teste do painel', encoding: 'utf-8'})}).catch(() => null);
+    if (!r) return err('Sem conexão com o GitHub. Tente de novo.');
+    if (!r.ok) {
+      let msg = ''; try { msg = (await r.json()).message || ''; } catch {}
+      return err(r.status === 401
+        ? `Token inválido ou vencido. Confira se copiou inteiro. (GitHub 401${msg ? ': ' + msg : ''})`
+        : `O token foi aceito, mas não pode gravar no repositório. Em "Repository access" escolha "Only select repositories" → crucialssma, e em "Repository permissions" marque Read and write em Contents e em Actions. (GitHub ${r.status}${msg ? ': ' + msg : ''})`);
+    }
+    err('');
     store.set('ghToken', tok); closeModal(); toast('Pronto, este aparelho pode agendar e publicar.'); renderSys();
     if (then) then();
   };
